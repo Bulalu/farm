@@ -4,6 +4,9 @@ from scripts.helpful_scripts import LOCAL_BLOCKCHAIN_ENVIRONMENTS,  get_account,
 from scripts.deploy import deploy_token_farm_and_dapp_token
 import pytest
 import brownie
+
+
+
 def test_set_price_feed_contract():
     # Arrange
     if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
@@ -62,12 +65,6 @@ def test_stake_tokens():
     assert(token_farm.stakers(1) == bob)
     assert(weth_token.balanceOf(token_farm) == (staking_amount * 3))
     
-    # user_total_value = token_farm.getUserTotalValue(owner)
-    # single_token_value = token_farm.getUserSingleTokenValue(owner, weth_token.address)
-    # print("User total value", single_token_value)
-    # print("Unique tokens staked", token_farm.uniqueTokensStaked(owner))
-    # print("Token Price", token_farm.getTokenPrice(weth_token.address))
-    # coz I wanna use this already set-up staked func on other tests
     return token_farm, dapp_token, weth_token
 
 def test_issue_token():

@@ -13,12 +13,7 @@ contract TokenFarm is Ownable{
     address[] public allowedTokens;
     IERC20 dappToken;
 
-// stakeTokens ✅
-// unstakeTokens 
-// issueTokens (rewards) ✅
-// addAllowedTokens ✅
-// getEthValue ✅
-    
+
     constructor(address _dappToken){
         dappToken = IERC20(_dappToken);
     }
@@ -78,8 +73,7 @@ contract TokenFarm is Ownable{
 
     }
     function stakeTokens(uint256 _amount, address _token) public {
-        // what tokens can they stake?
-        // how much can they stake?
+        
         require(_amount > 0, "Amount must be greater than zero");
         require(tokenIsAllowed(_token), "Token is currently not allowed");
         IERC20(_token).transferFrom(msg.sender, address(this), _amount);
