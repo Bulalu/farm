@@ -40,13 +40,15 @@ contract TokenFarm is Ownable{
     }
     
     // get total for all tokens staked eth/dai/usdc
-    function getUserTotalValue(address _user) internal view returns(uint256 amount){
+    function getUserTotalValue(address _user) public view returns(uint256 amount){
         uint256 totalValue = 0;
         require(uniqueTokensStaked[_user] > 0, "Nothing staked bruh");
         for(uint256 allowedTokensIndex = 0; allowedTokensIndex < allowedTokens.length; allowedTokensIndex++){
             
             totalValue = totalValue + getUserSingleTokenValue(_user, allowedTokens[allowedTokensIndex]);
         }
+
+        return totalValue;
         
         
     }
@@ -61,7 +63,7 @@ contract TokenFarm is Ownable{
         // 10 * 10**18 ETH
         // ETH/USD -> $3000 * 10**18?
         // 10 * 10**18 * 3000 / 10** DECIMALS
-        uint256 rewards = (stakingBalance[_token][_user] * price / (10**decimal));
+        uint256 rewards = (stakingBalance[_token][_user] * price / (10**uint256(decimal)));
         return rewards;
 
     }
