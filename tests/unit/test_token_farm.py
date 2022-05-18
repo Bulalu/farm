@@ -1,0 +1,82 @@
+import pytest
+from brownie import network, exceptions
+from scripts.helpful_scripts import LOCAL_BLOCKCHAIN_ENVIRONMENTS,  get_account, get_contract
+from scripts.deploy import deploy_token_farm_and_dapp_token
+import pytest
+import brownie
+def test_set_price_feed_contract():
+    # Arrange
+    if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
+        pytest.skip("Only for local testing")
+
+    owner = get_account()
+    non_owner = get_account(index=1)
+    token_farm, dapp_token = deploy_token_farm_and_dapp_token()
+
+    # Act
+    price_feed_address = get_contract("eth_usd_price_feed")
+    token_farm.setPriceFeedContract(dapp_token.address, price_feed_address, {"from": owner})
+
+    # Assert
+    assert token_farm.tokenPriceFeedMapping(dapp_token.address) == price_feed_address
+    with pytest.raises(exceptions.VirtualMachineError):
+        token_farm.setPriceFeedContract(dapp_token.address, price_feed_address, {"from": non_owner})
+
+
+def test_stake_tokens():
+    if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
+        pytest.skip("Only for local testing")
+
+    owner = get_account()
+    non_owner = get_account(index=1)
+    fau_token = get_contract("fau_token")
+    weth_token = get_contract("weth_token")
+    token_farm, dapp_token = deploy_token_farm_and_dapp_token()
+    staking_amount = 100 * 10**18
+    
+    
+    weth_token.transfer(non_owner, staking_amount, {"from": owner})
+    balance_before_staking = dapp_token.balanceOf(token_farm)
+    print("User balance before staking:", balance_before_staking)
+    
+    print(fau_token.balanceOf(owner))
+    with brownie.reverts("Amount must be greater than zero"):
+        token_farm.stakeTokens(0, weth_token.address, {"from": non_owner})
+
+    with brownie.reverts("Token is currently not allowed"):
+        token_farm.stakeTokens(staking_amount, non_owner, {"from": non_owner})
+
+    # non owner
+    weth_token.approve(token_farm, staking_amount, {"from": non_owner})
+    token_farm.stakeTokens(staking_amount, weth_token.address, {"from": non_owner})
+
+    weth_token.approve(token_farm, staking_amount * 2, {"from": owner})
+    token_farm.stakeTokens(staking_amount * 2, weth_token.address, {"from": owner})
+
+    assert(token_farm.stakingBalance(weth_token.address, owner) == staking_amount * 2)
+    assert(token_farm.stakingBalance(weth_token.address, non_owner) == staking_amount)
+    assert(token_farm.stakers(0) == non_owner)
+    assert(token_farm.stakers(1) == owner)
+    assert(weth_token.balanceOf(token_farm) == (staking_amount * 3))
+    
+    # user_total_value = token_farm.getUserTotalValue(owner)
+    # single_token_value = token_farm.getUserSingleTokenValue(owner, weth_token.address)
+    # print("User total value", single_token_value)
+    # print("Unique tokens staked", token_farm.uniqueTokensStaked(owner))
+    # print("Token Price", token_farm.getTokenPrice(weth_token.address))
+    # coz I wanna use this already set-up staked func on other tests
+    return token_farm, dapp_token, weth_token
+
+def test_issue_token():
+    if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
+        pytest.skip("Only for local testing")
+
+    owner = get_account()
+    non_owner = get_account(index=1)
+    token_farm, dapp_token, weth_token = test_stake_tokens()
+    
+    print(dapp_token.balanceOf(non_owner))
+
+    token_farm.issueTokens({"from": owner})
+
+    print(dapp_token.balanceOf(non_owner))

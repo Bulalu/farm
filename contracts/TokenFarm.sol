@@ -48,6 +48,7 @@ contract TokenFarm is Ownable{
             totalValue = totalValue + getUserSingleTokenValue(_user, allowedTokens[allowedTokensIndex]);
         }
         
+        
     }
 
     function getUserSingleTokenValue(address _user, address _token) public view returns(uint256){
@@ -60,7 +61,7 @@ contract TokenFarm is Ownable{
         // 10 * 10**18 ETH
         // ETH/USD -> $3000 * 10**18?
         // 10 * 10**18 * 3000 / 10** DECIMALS
-        uint256 rewards = (stakingBalance[_user][_token] * price / (10**decimal));
+        uint256 rewards = (stakingBalance[_token][_user] * price / (10**decimal));
         return rewards;
 
     }
@@ -85,6 +86,15 @@ contract TokenFarm is Ownable{
         if (uniqueTokensStaked[msg.sender] == 1){
             stakers.push(msg.sender);
         }
+    }
+
+    function unstakeTokens(address _token) public {
+        uint256 balance = stakingBalance[_token][msg.sender];
+        require(balance > 0, "Yoo Nothing to unstake here bro, GET LOST");
+        IERC20(_token).transfer(msg.sender, balance);
+        stakingBalance[_token][msg.sender] = 0;
+        uniqueTokensStaked[msg.sender] = uniqueTokensStaked[msg.sender] - 1;
+
     }
     // @dev checks to see if the user has already staked or not
     // so that you will add the users twice on the staker mapping
