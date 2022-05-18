@@ -100,6 +100,7 @@ def test_unstake_tokens():
     owner = get_account()
     alice = get_account(index=1)
     bob = get_account(index=2)
+
     token_farm, dapp_token, weth_token = test_stake_tokens()
 
     bob_bal_before = weth_token.balanceOf(bob)
@@ -113,3 +114,6 @@ def test_unstake_tokens():
 
     assert( bob_staking_bal == weth_token.balanceOf(bob))
     assert( alice_staking_bal == weth_token.balanceOf(alice))
+
+    with brownie.reverts("Yoo Nothing to unstake here bro, GET LOST"):
+        token_farm.unstakeTokens(weth_token.address, {"from": owner})
