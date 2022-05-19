@@ -2,20 +2,27 @@ pragma solidity ^0.8.6;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import  "@openzeppelin/contracts/token/ERC20/IERC20.sol"; 
+import  "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "./DappToken.sol";
 
-contract TokenFarm is Ownable{
+contract TokenFarm is Ownable, DappToken{
+
+    using SafeERC20 for IERC20;
+
     // mapping token address -> staker address -> amount
     mapping(address => mapping(address => uint256)) public stakingBalance;
     mapping(address => uint256) public uniqueTokensStaked;
     mapping(address => address) public tokenPriceFeedMapping;
+   
     address[] public stakers;
     address[] public allowedTokens;
-    IERC20 dappToken;
+    address public rewardToken;
 
+    event Rewards(uint256 amount, address user);
 
-    constructor(address _dappToken){
-        dappToken = IERC20(_dappToken);
+    constructor(address _rewardToken){
+        rewardToken = (_rewardToken);
     }
 
     function setPriceFeedContract(address _token, address _priceFeed) public onlyOwner {
@@ -29,10 +36,11 @@ contract TokenFarm is Ownable{
             address recepient = stakers[stakersIndex];
             uint256 userTotalValue = getUserTotalValue(recepient);
             // send tokens rewards based on TVL
-            dappToken.transfer(recepient, userTotalValue);
+            IERC20(rewardToken).safeTransfer(recepient, userTotalValue);
         }
-
     }
+
+    
     
     // get total for all tokens staked eth/dai/usdc
     function getUserTotalValue(address _user) internal view returns(uint256 amount){
@@ -76,20 +84,27 @@ contract TokenFarm is Ownable{
         
         require(_amount > 0, "Amount must be greater than zero");
         require(tokenIsAllowed(_token), "Token is currently not allowed");
-        IERC20(_token).transferFrom(msg.sender, address(this), _amount);
+        
+        IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
         updateUniqueTokensStaked(msg.sender, _token);
         stakingBalance[_token][msg.sender] = stakingBalance[_token][msg.sender] + _amount;
+       
         if (uniqueTokensStaked[msg.sender] == 1){
             stakers.push(msg.sender);
         }
     }
 
     function unstakeTokens(address _token) public {
+
+        // should burn them dapp tokens
         uint256 balance = stakingBalance[_token][msg.sender];
         require(balance > 0, "Yoo Nothing to unstake here bro, GET LOST");
-        IERC20(_token).transfer(msg.sender, balance);
+        
+        
         stakingBalance[_token][msg.sender] = 0;
         uniqueTokensStaked[msg.sender] = uniqueTokensStaked[msg.sender] - 1;
+
+        IERC20(_token).safeTransfer(msg.sender, balance);
 
     }
     // @dev checks to see if the user has already staked or not
