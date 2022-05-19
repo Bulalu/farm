@@ -40,7 +40,16 @@ contract TokenFarm is Ownable, DappToken{
         }
     }
 
-    
+    function claimRewards() public {
+        // claim rewards for every token type (DAI, FAU) staked
+        // should mint new tokens dapp tokens
+        // balanceofstaked should be greater than 0 
+        uint256 rewards = getUserTotalValue(msg.sender);
+        require(rewards > 0, "Nothing to Claim" );
+
+        emit Rewards(rewards, msg.sender);
+        _mint(msg.sender, rewards);
+    }
     
     // get total for all tokens staked eth/dai/usdc
     function getUserTotalValue(address _user) internal view returns(uint256 amount){

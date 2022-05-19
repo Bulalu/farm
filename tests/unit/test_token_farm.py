@@ -114,3 +114,27 @@ def test_unstake_tokens():
 
     with brownie.reverts("Yoo Nothing to unstake here bro, GET LOST"):
         token_farm.unstakeTokens(weth_token.address, {"from": owner})
+
+
+def test_claim_rewards():
+
+    if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
+        pytest.skip("Only for local testing")
+
+    owner = get_account()
+    alice = get_account(index=1)
+    bob = get_account(index=2)
+
+    token_farm, dapp_token, weth_token = test_stake_tokens()
+
+    bob_bal_before = dapp_token.balanceOf(bob)
+    alice_bal_before = dapp_token.balanceOf(alice)
+
+    tx_alice = token_farm.claimRewards({"from": alice})
+    tx_alice = token_farm.claimRewards({"from": alice})
+    assert "Rewards" in (tx_alice.events)
+    assert tx_alice.events["Rewards"]["amount"] == token_farm.balanceOf(alice)
+    print("dapp token balance",token_farm.balanceOf(bob))
+    
+    #check out this error
+    
