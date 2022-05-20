@@ -19,6 +19,9 @@ contract TokenFarmV2 is Ownable, DappToken{
     address[] public allowedTokens;
     address public rewardToken;
 
+    // total supply of minted shares
+    uint256 public totalSupplyShares;
+
     event Rewards(uint256 amount, address user);
 
     constructor(address _rewardToken){
@@ -50,7 +53,29 @@ contract TokenFarmV2 is Ownable, DappToken{
         emit Rewards(rewards, msg.sender);
         _mint(msg.sender, rewards);
     }
+
+    function calculateShares(uint256 _amount, address _token) public returns(uint256 dunno) {
+        
+
+
+        uint256 farmBalance = IERC20(_token).balanceOf(address(this));
+        require(farmBalance > 0, "Insufficient Amount");
+        if (totalSupplyShares == 0) { 
+            totalSupplyShares = _amount;
+        }
+
+        dunno = (_amount * totalSupplyShares) / farmBalance;
+
+        return dunno;
+
+
+    }
     
+    function farmBalance(address _token) public view returns(uint256 _balance) {
+        
+        _balance = IERC20(_token).balanceOf(address(this));
+        return _balance;
+    }
     // get total for all tokens staked eth/dai/usdc
     function getUserTotalValue(address _user) internal view returns(uint256 amount){
         uint256 totalValue = 0;

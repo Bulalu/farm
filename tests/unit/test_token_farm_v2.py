@@ -140,3 +140,30 @@ def test_claim_rewards():
     
     #check out this error
     
+def test_calculate_share():
+    if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
+        pytest.skip("Only for local testing")
+
+    owner = get_account()
+    non_owner = get_account(index=1)
+    bob = get_account(index=2)
+    fau_token = get_contract("fau_token")
+    weth_token = get_contract("weth_token")
+    token_farm, dapp_token = deploy_token_farm_and_dapp_token()
+    staking_amount = 1 * 10**18
+    
+    
+    weth_token.transfer(non_owner, staking_amount, {"from": owner})
+    weth_token.transfer(bob, staking_amount*2, {"from": owner})
+
+    with brownie.reverts("Insufficient Amount"):
+        token_farm.calculateShares(staking_amount, weth_token, {"from": bob})
+    
+    # calculate_shares = token_farm.calculateShares(staking_amount, weth_token, {"from": bob})
+    # print(calculate_shares)
+   
+    weth_token.approve(token_farm, staking_amount, {"from": non_owner})
+    token_farm.stakeTokens(staking_amount, weth_token.address, {"from": non_owner})
+
+    calculate_shares = token_farm.calculateShares(staking_amount,weth_token)
+    print("Calculate Shares", calculate_shares)
