@@ -1,7 +1,7 @@
 import pytest
 from brownie import network, exceptions
 from scripts.helpful_scripts import LOCAL_BLOCKCHAIN_ENVIRONMENTS,  get_account, get_contract, INITIAL_PRICE_FEED_VALUE
-from scripts.deploy_farm_v1 import deploy_token_farm_and_dapp_token
+from scripts.deploy_farm_v2 import deploy_token_farm_and_dapp_token
 import pytest
 import brownie
 
@@ -22,6 +22,7 @@ def test_set_price_feed_contract():
 
     # Assert
     assert token_farm.tokenPriceFeedMapping(dapp_token.address) == price_feed_address
+    
     with pytest.raises(exceptions.VirtualMachineError):
         token_farm.setPriceFeedContract(dapp_token.address, price_feed_address, {"from": non_owner})
 
@@ -46,10 +47,10 @@ def test_stake_tokens():
     print("User balance before staking:", balance_before_staking)
     
     print(fau_token.balanceOf(owner))
-    with brownie.reverts("amount cannot be 0"):
+    with brownie.reverts("Amount must be greater than zero"):
         token_farm.stakeTokens(0, weth_token.address, {"from": non_owner})
 
-    with brownie.reverts("Token currently isn't allowed"):
+    with brownie.reverts("Token is currently not allowed"):
         token_farm.stakeTokens(staking_amount, non_owner, {"from": non_owner})
 
     # non owner
@@ -112,8 +113,30 @@ def test_unstake_tokens():
     assert( bob_staking_bal == weth_token.balanceOf(bob))
     assert( alice_staking_bal == weth_token.balanceOf(alice))
 
-    with brownie.reverts("staking balance cannot be 0"):
+    with brownie.reverts("Yoo Nothing to unstake here bro, GET LOST"):
         token_farm.unstakeTokens(weth_token.address, {"from": owner})
 
 
+def test_claim_rewards():
 
+    if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
+        pytest.skip("Only for local testing")
+
+    owner = get_account()
+    alice = get_account(index=1)
+    bob = get_account(index=2)
+
+    token_farm, dapp_token, weth_token = test_stake_tokens()
+
+    bob_bal_before = dapp_token.balanceOf(bob)
+    alice_bal_before = dapp_token.balanceOf(alice)
+
+    tx_alice = token_farm.claimRewards({"from": alice})
+    tx_alice = token_farm.claimRewards({"from": alice})
+    tx_alice = token_farm.claimRewards({"from": alice})
+    assert "Rewards" in (tx_alice.events)
+    assert tx_alice.events["Rewards"]["amount"] == token_farm.balanceOf(alice)
+    print("dapp token balance",token_farm.balanceOf(bob))
+    
+    #check out this error
+    

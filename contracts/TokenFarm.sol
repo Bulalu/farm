@@ -1,140 +1,141 @@
-pragma solidity ^0.8.6;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.7;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import  "@openzeppelin/contracts/token/ERC20/IERC20.sol"; 
-import  "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-import "./DappToken.sol";
+import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract TokenFarm is Ownable, DappToken{
+contract TokenFarm is ChainlinkClient, Ownable {
+    string public name = "Dapp Token Farm";
+    IERC20 public dappToken;
 
-    using SafeERC20 for IERC20;
-
-    // mapping token address -> staker address -> amount
+    address[] public stakers;
+    // token > address
     mapping(address => mapping(address => uint256)) public stakingBalance;
     mapping(address => uint256) public uniqueTokensStaked;
     mapping(address => address) public tokenPriceFeedMapping;
-   
-    address[] public stakers;
     address[] public allowedTokens;
-    address public rewardToken;
 
-    event Rewards(uint256 amount, address user);
-
-    constructor(address _rewardToken){
-        rewardToken = (_rewardToken);
+    constructor(address _dappTokenAddress) public {
+        dappToken = IERC20(_dappTokenAddress);
     }
 
-    function setPriceFeedContract(address _token, address _priceFeed) public onlyOwner {
-        tokenPriceFeedMapping[_token] = _priceFeed;
-    }
-    // users can also claim instead of looping and sending them on yo own
-    function issueTokens() public onlyOwner {
-        // Issue tokens to all stakers
-        for( uint256 stakersIndex = 0; stakersIndex < stakers.length; stakersIndex ++){
-
-            address recepient = stakers[stakersIndex];
-            uint256 userTotalValue = getUserTotalValue(recepient);
-            // send tokens rewards based on TVL
-            IERC20(rewardToken).safeTransfer(recepient, userTotalValue);
-        }
+    function addAllowedTokens(address token) public onlyOwner {
+        allowedTokens.push(token);
     }
 
-    function claimRewards() public {
-        // claim rewards for every token type (DAI, FAU) staked
-        // should mint new tokens dapp tokens
-        // balanceofstaked should be greater than 0 
-        uint256 rewards = getUserTotalValue(msg.sender);
-        require(rewards > 0, "Nothing to Claim" );
-
-        emit Rewards(rewards, msg.sender);
-        _mint(msg.sender, rewards);
-    }
-    
-    // get total for all tokens staked eth/dai/usdc
-    function getUserTotalValue(address _user) internal view returns(uint256 amount){
-        uint256 totalValue = 0;
-        require(uniqueTokensStaked[_user] > 0, "Nothing staked bruh");
-        for(uint256 allowedTokensIndex = 0; allowedTokensIndex < allowedTokens.length; allowedTokensIndex++){
-            
-            totalValue = totalValue + getUserSingleTokenValue(_user, allowedTokens[allowedTokensIndex]);
-        }
-
-        return totalValue;
-        
-        
+    function setPriceFeedContract(address token, address priceFeed)
+        public
+        onlyOwner
+    {
+        tokenPriceFeedMapping[token] = priceFeed;
     }
 
-    function getUserSingleTokenValue(address _user, address _token) public view returns(uint256){
-        if (uniqueTokensStaked[_user] == 0) {
-            return 0;
-        }
-
-        // price of the token * stakingBalance[_token][user]
-        (uint256 price, uint256 decimal) = getTokenPrice(_token);
-        // 10 * 10**18 ETH
-        // ETH/USD -> $3000 * 10**18?
-        // 10 * 10**18 * 3000 / 10** DECIMALS
-        uint256 rewards = (stakingBalance[_token][_user] * price / (10**uint256(decimal)));
-        return rewards;
-
-    }
-
-    function getTokenPrice(address _token) public view returns(uint256 price, uint256 decimals){
-        // priceFeedAddress
-        address priceFeedAddress = tokenPriceFeedMapping[_token];
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(priceFeedAddress);
-        (,int256 price,,,) = priceFeed.latestRoundData();
-        uint256 decimals = uint256(priceFeed.decimals());
-        return (uint256(price), decimals);
-
-    }
-    function stakeTokens(uint256 _amount, address _token) public {
-        
-        require(_amount > 0, "Amount must be greater than zero");
-        require(tokenIsAllowed(_token), "Token is currently not allowed");
-        
-        IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
-        updateUniqueTokensStaked(msg.sender, _token);
-        stakingBalance[_token][msg.sender] = stakingBalance[_token][msg.sender] + _amount;
-       
-        if (uniqueTokensStaked[msg.sender] == 1){
+    function stakeTokens(uint256 _amount, address token) public {
+     // NOTE:
+     // This is vulnerable to a reentrancy attack!!!
+        // Require amount greater than 0
+        require(_amount > 0, "amount cannot be 0");
+        require(tokenIsAllowed(token), "Token currently isn't allowed");
+        updateUniqueTokensStaked(msg.sender, token);
+        IERC20(token).transferFrom(msg.sender, address(this), _amount);
+        stakingBalance[token][msg.sender] =
+            stakingBalance[token][msg.sender] +
+            _amount;
+        if (uniqueTokensStaked[msg.sender] == 1) {
             stakers.push(msg.sender);
         }
     }
 
-    function unstakeTokens(address _token) public {
-
-        // should burn them dapp tokens
-        uint256 balance = stakingBalance[_token][msg.sender];
-        require(balance > 0, "Yoo Nothing to unstake here bro, GET LOST");
-        
-        
-        stakingBalance[_token][msg.sender] = 0;
+    // Unstaking Tokens (Withdraw)
+    function unstakeTokens(address token) public {
+     // NOTE:
+     // This is vulnerable to a reentrancy attack!!!
+        // Fetch staking balance
+        uint256 balance = stakingBalance[token][msg.sender];
+        require(balance > 0, "staking balance cannot be 0");
+        IERC20(token).transfer(msg.sender, balance);
+        stakingBalance[token][msg.sender] = 0;
         uniqueTokensStaked[msg.sender] = uniqueTokensStaked[msg.sender] - 1;
-
-        IERC20(_token).safeTransfer(msg.sender, balance);
-
     }
-    // @dev checks to see if the user has already staked or not
-    // so that you will add the users twice on the staker mapping
-    // sure there is other ways this could be done
-    function updateUniqueTokensStaked(address _user, address _token) internal {
-        if (stakingBalance[_token][_user] <= 0) {
-            uniqueTokensStaked[_user] = uniqueTokensStaked[_user] + 1;
+
+    function getUserTotalValue(address user) public view returns (uint256) {
+        uint256 totalValue = 0;
+        if (uniqueTokensStaked[user] > 0) {
+            for (
+                uint256 allowedTokensIndex = 0;
+                allowedTokensIndex < allowedTokens.length;
+                allowedTokensIndex++
+            ) {
+                totalValue =
+                    totalValue +
+                    getUserTokenStakingBalanceEthValue(
+                        user,
+                        allowedTokens[allowedTokensIndex]
+                    );
+            }
+        }
+        return totalValue;
+    }
+
+    function tokenIsAllowed(address token) public view returns (bool) {
+        for (
+            uint256 allowedTokensIndex = 0;
+            allowedTokensIndex < allowedTokens.length;
+            allowedTokensIndex++
+        ) {
+            if (allowedTokens[allowedTokensIndex] == token) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function updateUniqueTokensStaked(address user, address token) internal {
+        if (stakingBalance[token][user] <= 0) {
+            uniqueTokensStaked[user] = uniqueTokensStaked[user] + 1;
         }
     }
 
-    function addAllowedTokens(address _token) public onlyOwner{
-        allowedTokens.push(_token);
+    function getUserTokenStakingBalanceEthValue(address user, address token)
+        public
+        view
+        returns (uint256)
+    {
+        if (uniqueTokensStaked[user] <= 0) {
+            return 0;
+        }
+        (uint256 price, uint8 decimals) = getTokenEthPrice(token);
+        return
+            (stakingBalance[token][user] * price) / (10**uint256(decimals));
     }
 
-    function tokenIsAllowed(address _token) public view returns (bool) {
-        for( uint256 allowedTokensIndex=0; allowedTokensIndex < allowedTokens.length; allowedTokensIndex ++)
-            if(allowedTokens[allowedTokensIndex] == _token){
-                return true;
-            }
-        return false;
+    // Issuing Tokens
+    function issueTokens() public onlyOwner {
+        // Issue tokens to all stakers
+        for (
+            uint256 stakersIndex = 0;
+            stakersIndex < stakers.length;
+            stakersIndex++
+        ) {
+            address recipient = stakers[stakersIndex];
+            dappToken.transfer(recipient, getUserTotalValue(recipient));
+        }
+    }
+
+    function getTokenEthPrice(address token) public view returns (uint256, uint8) {
+        address priceFeedAddress = tokenPriceFeedMapping[token];
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(
+            priceFeedAddress
+        );
+        (
+            uint80 roundID,
+            int256 price,
+            uint256 startedAt,
+            uint256 timeStamp,
+            uint80 answeredInRound
+        ) = priceFeed.latestRoundData();
+        return (uint256(price), priceFeed.decimals());
     }
 }
-
