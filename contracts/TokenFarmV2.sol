@@ -22,7 +22,7 @@ contract TokenFarmV2 is Ownable, DappToken{
     // total supply of minted shares
     uint256 public totalSupplyShares;
 
-    event Rewards(uint256 amount, address user);
+    event Shares(uint256 amount, uint256 shares);
 
     constructor(address _rewardToken){
         rewardToken = (_rewardToken);
@@ -50,13 +50,22 @@ contract TokenFarmV2 is Ownable, DappToken{
         uint256 rewards = getUserTotalValue(msg.sender);
         require(rewards > 0, "Nothing to Claim" );
 
-        emit Rewards(rewards, msg.sender);
+        // emit Rewards(rewards, msg.sender);
         _mint(msg.sender, rewards);
     }
 
-    function calculateShares(uint256 _amount, address _token) public returns(uint256 dunno) {
+    function calculateShares(uint256 _amount, address _token) internal  returns(uint256 shares) {
         
+        /*
+        a = amount
+        B = balance of token before deposit
+        T = total supply
+        s = shares to mint
 
+        (T + s) / T = (a + B) / B 
+
+        s = aT / B
+        */
 
         uint256 farmBalance = IERC20(_token).balanceOf(address(this));
         require(farmBalance > 0, "Insufficient Amount");
@@ -64,18 +73,17 @@ contract TokenFarmV2 is Ownable, DappToken{
             totalSupplyShares = _amount;
         }
 
-        dunno = (_amount * totalSupplyShares) / farmBalance;
+        // update the mint function to increment totalSUpplyShares
+        shares = (_amount * totalSupplyShares) / farmBalance;
 
-        return dunno;
+        emit Shares(_amount, shares);
+        return shares;
 
 
     }
+
     
-    function farmBalance(address _token) public view returns(uint256 _balance) {
-        
-        _balance = IERC20(_token).balanceOf(address(this));
-        return _balance;
-    }
+    
     // get total for all tokens staked eth/dai/usdc
     function getUserTotalValue(address _user) internal view returns(uint256 amount){
         uint256 totalValue = 0;
@@ -126,17 +134,25 @@ contract TokenFarmV2 is Ownable, DappToken{
         if (uniqueTokensStaked[msg.sender] == 1){
             stakers.push(msg.sender);
         }
+
+        uint256 shares = calculateShares(_amount, _token);
+        _mint(msg.sender, shares);
     }
 
+    // user will be able to unstake only what is left on the vault/farm
+    // either will gain profits or might take a hit and go broke, Giggity giggity goo
+    
     function unstakeTokens(address _token) public {
 
         // should burn them dapp tokens
         uint256 balance = stakingBalance[_token][msg.sender];
-        require(balance > 0, "Yoo Nothing to unstake here bro, GET LOST");
+        require(balance > 0 && balanceOf(msg.sender) > 0, "Yoo Nothing to unstake here bro, GET LOST");
         
         
         stakingBalance[_token][msg.sender] = 0;
         uniqueTokensStaked[msg.sender] = uniqueTokensStaked[msg.sender] - 1;
+        
+        _burn(msg.sender, balanceOf(msg.sender));
 
         IERC20(_token).safeTransfer(msg.sender, balance);
 

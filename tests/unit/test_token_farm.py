@@ -102,8 +102,13 @@ def test_unstake_tokens():
 
     bob_bal_before = weth_token.balanceOf(bob)
     alice_bal_before = weth_token.balanceOf(alice)
+    
+    bob_bal_before = token_farm.balanceOf(bob)
+    alice_bal_before = token_farm.balanceOf(alice)
+    
     print(bob_bal_before, alice_bal_before)
-
+    print("Dapp token balance Alice and Bob before Unstaking",bob_bal_before, alice_bal_before)
+   
     bob_staking_bal = token_farm.stakingBalance(weth_token.address, bob)
     alice_staking_bal = token_farm.stakingBalance(weth_token.address, alice)
     token_farm.unstakeTokens(weth_token.address, {"from": bob})
@@ -111,9 +116,12 @@ def test_unstake_tokens():
 
     assert( bob_staking_bal == weth_token.balanceOf(bob))
     assert( alice_staking_bal == weth_token.balanceOf(alice))
+    assert(token_farm.balanceOf(alice) == 0)
+    assert(token_farm.balanceOf(bob) == 0)
 
     with brownie.reverts("staking balance cannot be 0"):
         token_farm.unstakeTokens(weth_token.address, {"from": owner})
 
+    
 
 

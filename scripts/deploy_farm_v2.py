@@ -11,8 +11,9 @@ def deploy_token_farm_and_dapp_token():
     dapp_token = DappToken.deploy({"from": account})
     token_farm = TokenFarmV2.deploy(dapp_token.address, {"from": account}, publish_source = config["networks"][network.show_active()]["verify"])
 
-    tx = dapp_token.transfer(token_farm.address, dapp_token.totalSupply() - KEPT_BALANCE, {"from": account})
-    tx.wait(1)
+     #  we dont need this because V2 mint its own token
+    # tx = dapp_token.transfer(token_farm.address, dapp_token.totalSupply() - KEPT_BALANCE, {"from": account})
+    # tx.wait(1)
 
     # dapp_token, weth_token, fau_token/dai
     weth_token = get_contract("weth_token")
