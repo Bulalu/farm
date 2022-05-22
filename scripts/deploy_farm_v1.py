@@ -9,6 +9,7 @@ KEPT_BALANCE = Web3.toWei(100, "ether")
 def deploy_token_farm_and_dapp_token():
     account = get_account()
     dapp_token = DappToken.deploy({"from": account})
+    dapp_token.mint(1000000000000000000000000, {"from":account})
     token_farm = TokenFarm.deploy(dapp_token.address, {"from": account}, publish_source = config["networks"][network.show_active()]["verify"])
 
    
