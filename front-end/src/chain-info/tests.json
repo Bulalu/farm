@@ -1,0 +1,266 @@
+{
+  "contracts": {
+    "DappToken": "bc6bd134fbac33b1243d2e28accedd79e5b2feb5",
+    "LinkToken": "49e7bae2df618e81d877632c6ad55872ff2ce801",
+    "MockDAI": "e850d19a4c9441446e7ea0f9032f8541979b235c",
+    "MockERC20": "39d566b2e2f7473429eb93a946f4e73d4b011af8",
+    "MockOracle": "7f09d8b642ed1af8d9a3e094ab619f25db4db23c",
+    "MockV3Aggregator": "9e734e161b5cafcca52a917f10266f5a8bc05b28",
+    "MockWETH": "24108e5c8404355e5ed30b237c68b30c44314bd5",
+    "OpenZeppelin/openzeppelin-contracts@4.5.0/Address": "1ce946f6a4eaa185320328620ccf999b9e86db7c",
+    "OpenZeppelin/openzeppelin-contracts@4.5.0/ERC20": "15aeefd481ce94e0891603de0eb35048b803d199",
+    "OpenZeppelin/openzeppelin-contracts@4.5.0/SafeERC20": "1ce946f6a4eaa185320328620ccf999b9e86db7c",
+    "TokenFarm": "1a33d97b11302f45b6ca7bd0f3e3aecca4f7244c",
+    "TokenFarmV2": "69979dc84d826ec36a63d312f2b519577e045089",
+    "VRFCoordinatorMock": "a234e721cab3c47e532d8404949512e63f344855",
+    "smartcontractkit/chainlink-brownie-contracts@0.4.0/BasicToken": "92084ac5279a2a3db988d9e01d7e6d3e3a4dab8d",
+    "smartcontractkit/chainlink-brownie-contracts@0.4.0/CBORChainlink": "1ce946f6a4eaa185320328620ccf999b9e86db7c",
+    "smartcontractkit/chainlink-brownie-contracts@0.4.0/SafeMathChainlink": "bf84f5dba942291289c80f271862cb515ce813ab",
+    "smartcontractkit/chainlink-brownie-contracts@0.4.0/StandardToken": "7f21b0e2f1d1fcf89f4466183c9e73bc3cf77276",
+    "smartcontractkit/chainlink-brownie-contracts@0.4.0/VRFRequestIDBase": "73df0a6f5d0123eb2b2db0faf62b602aa77c123a"
+  },
+  "tests": {
+    "tests/unit/test_token_farm.py": {
+      "coverage": false,
+      "isolated": false,
+      "results": "....",
+      "sha1": "560213ceec08450fa9d1b620a467246489b50615",
+      "txhash": [
+        "6551f47634a51ae8f3d4617616112e1ab9e10231",
+        "6774f979198d9d71376476aa548eaecff7638297",
+        "87afd3fb1eda330999f9fdc8fa06980d1a8d02cb",
+        "b20a4ad7ddcda6ab8cc51a61be6015d9b19dd0ff",
+        "bad964af5adfc50e08df626a9a065360e66a969d",
+        "c1a693bd9f2c3880b72a18191356e8aeb1c761b9",
+        "d52e1827f9709319fd03b5aab7e386c9257251c4",
+        "e36f521502f92d84ab794364e8e46d0fb0a1563e"
+      ]
+    },
+    "tests/unit/test_token_farm_v2.py": {
+      "coverage": false,
+      "isolated": false,
+      "results": "..F.",
+      "sha1": "1295700e4038017ac168b30412e5968c2b70a9b5",
+      "txhash": [
+        "1a02224916298ef83215f4d698e9388677dbf251",
+        "3c8938dd683860a15bdb59b5096f4298ded09ba2",
+        "51bf441aeb1f858ff1058cccf594fb320fa772e8",
+        "789dd7538605ee5696a575969edc853c4c52076c",
+        "998c13e3df0a85f6abf82f526ccf26180b0286c8"
+      ]
+    }
+  },
+  "tx": {
+    "1a02224916298ef83215f4d698e9388677dbf251": {
+      "TokenFarmV2": {
+        "9": [
+          [
+            9,
+            10,
+            40,
+            41
+          ],
+          [
+            89
+          ],
+          [
+            88,
+            94
+          ]
+        ]
+      }
+    },
+    "3c8938dd683860a15bdb59b5096f4298ded09ba2": {
+      "TokenFarmV2": {
+        "9": [
+          [
+            9
+          ],
+          [
+            88
+          ],
+          []
+        ]
+      }
+    },
+    "51bf441aeb1f858ff1058cccf594fb320fa772e8": {
+      "TokenFarmV2": {
+        "9": [
+          [
+            9,
+            10,
+            40,
+            41
+          ],
+          [
+            89
+          ],
+          [
+            88,
+            94
+          ]
+        ]
+      }
+    },
+    "6551f47634a51ae8f3d4617616112e1ab9e10231": {
+      "TokenFarm": {
+        "20": [
+          [
+            9
+          ],
+          [
+            34
+          ],
+          []
+        ]
+      }
+    },
+    "6774f979198d9d71376476aa548eaecff7638297": {
+      "TokenFarm": {
+        "20": [
+          [
+            1
+          ],
+          [
+            31
+          ],
+          []
+        ]
+      }
+    },
+    "789dd7538605ee5696a575969edc853c4c52076c": {
+      "TokenFarmV2": {
+        "9": [
+          [
+            9
+          ],
+          [
+            88
+          ],
+          []
+        ]
+      }
+    },
+    "87afd3fb1eda330999f9fdc8fa06980d1a8d02cb": {
+      "TokenFarm": {
+        "20": [
+          [
+            1,
+            2,
+            23,
+            24
+          ],
+          [
+            32
+          ],
+          [
+            31,
+            36
+          ]
+        ]
+      }
+    },
+    "998c13e3df0a85f6abf82f526ccf26180b0286c8": {
+      "TokenFarmV2": {
+        "0": [
+          [],
+          [],
+          []
+        ],
+        "6": [
+          [],
+          [],
+          []
+        ],
+        "9": [
+          [],
+          [],
+          []
+        ]
+      }
+    },
+    "b20a4ad7ddcda6ab8cc51a61be6015d9b19dd0ff": {
+      "TokenFarm": {
+        "20": [
+          [
+            1,
+            2,
+            23,
+            24
+          ],
+          [
+            32
+          ],
+          [
+            31,
+            36
+          ]
+        ]
+      }
+    },
+    "bad964af5adfc50e08df626a9a065360e66a969d": {
+      "TokenFarm": {
+        "20": [
+          [
+            1,
+            2,
+            23,
+            24
+          ],
+          [
+            32
+          ],
+          [
+            31,
+            36
+          ]
+        ]
+      }
+    },
+    "c1a693bd9f2c3880b72a18191356e8aeb1c761b9": {
+      "TokenFarm": {
+        "0": [
+          [],
+          [],
+          []
+        ],
+        "20": [
+          [],
+          [],
+          []
+        ],
+        "6": [
+          [],
+          [],
+          []
+        ]
+      }
+    },
+    "d52e1827f9709319fd03b5aab7e386c9257251c4": {
+      "TokenFarm": {
+        "20": [
+          [
+            1
+          ],
+          [
+            31
+          ],
+          []
+        ]
+      }
+    },
+    "e36f521502f92d84ab794364e8e46d0fb0a1563e": {
+      "TokenFarm": {
+        "20": [
+          [
+            1
+          ],
+          [
+            31
+          ],
+          []
+        ]
+      }
+    }
+  }
+}
