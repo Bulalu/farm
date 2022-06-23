@@ -13,14 +13,19 @@ export const Main = () => {
     // send the build folder
 
     const { chainId} = useEthers()
+    console.log("chainID",chainId)
     const networkName = chainId ? helperConfig[chainId] : "dev"
     console.log(networkName)
     console.log(chainId)
 
     const dappTokenAddress = chainId ? networkMapping[String(chainId)]["DappToken"][0] : constants.AddressZero
-    const wethTokenAddress = chainId ? brownieConfig["networks"][networkName]["wethToken"] : constants.AddressZero
-    const fauTokenAddress = chainId ? brownieConfig["networks"][networkName]["fauToken"] : constants.AddressZero
+    const wethTokenAddress = chainId ? brownieConfig["networks"][networkName]["weth_token"] : constants.AddressZero
+    const fauTokenAddress = chainId ? brownieConfig["networks"][networkName]["fau_token"] : constants.AddressZero
+    
+    // const weth_token = "0xc778417E063141139Fce010982780140Aa0cD5Ab"
     console.log(dappTokenAddress)
+    console.log(wethTokenAddress)
+    console.log(fauTokenAddress)
 
     return (
         <div>gm!</div>

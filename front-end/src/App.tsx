@@ -5,7 +5,7 @@ import { Container } from '@material-ui/core';
 import { Main } from "./components/Main"
 
 const config: Config = {
-  supportedChains: [ChainId.Kovan, ChainId.Rinkeby]
+  supportedChains: [ ChainId.Rinkeby]
   }
 
 

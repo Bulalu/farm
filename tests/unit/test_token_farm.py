@@ -5,6 +5,9 @@ from scripts.deploy_farm_v1 import deploy_token_farm_and_dapp_token
 import pytest
 import brownie
 
+@pytest.fixture(autouse=True)
+def isolation(fn_isolation):
+    pass
 
 
 def test_set_price_feed_contract():

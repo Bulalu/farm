@@ -6,6 +6,10 @@ import pytest
 import brownie
 
 
+@pytest.fixture(autouse=True)
+def isolation(fn_isolation):
+    pass
+
 
 def test_set_price_feed_contract():
     # Arrange
